@@ -6,3 +6,12 @@ CREATE TABLE container_stats (
 );
 
 SELECT create_hypertable('container_stats', 'time');
+
+CREATE VIEW dashboard_table AS
+SELECT
+    container_id,
+    AVG(cpu_usage) AS avg_cpu_usage,
+    AVG(memory_usage) AS avg_memory_usage,
+    MAX("time") AS last_update_time
+FROM container_stats
+GROUP BY container_id;
