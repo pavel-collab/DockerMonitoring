@@ -55,7 +55,7 @@ body {
   .sidebar {
       margin: 0;
       padding: 0;
-      width: 200px;
+      width: 150px;
       background-color: var(--sidebar);
       position: fixed;
       height: 100%;
@@ -84,9 +84,8 @@ body {
   
   /* Page content. The value of the margin-left property should match the value of the sidebar's width property */
   div.content {
-    margin-left: 200px;
+    margin-left: 150px;
     padding: 1px 16px;
-    height: 1000px;
   }
   
   /* On screens that are less than 700px wide, make the sidebar into a topbar */
@@ -136,7 +135,7 @@ p {
 .tiles-container {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
+  gap: 10px;
 }
 
 .tile {
@@ -145,5 +144,24 @@ p {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   padding: 5px;
   border-radius: 5px;
+  aspect-ratio: 9 / 8;
   transition: transform 0.3s ease-in-out;
+}
+
+.tile-4 {
+  flex: 1;
+  aspect-ratio: 1 / 1;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 5px;
+  border-radius: 5px;
+  transition: transform 0.3s ease-in-out;
+}
+
+.tile_text {
+  color: black;
+  text-align: center;
+  vertical-align: middle;
+  word-break: normal;
+  font-weight: 700;
 }

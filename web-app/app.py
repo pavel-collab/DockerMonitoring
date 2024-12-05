@@ -12,7 +12,13 @@ app = Flask(__name__)
 
 @app.route('/')
 def main_page():
-    return render_template('index.html')
+    with dbm.connect(dbname=DB_NAME) as con:
+        cur = con.cursor()
+        cur.execute("""SELECT 
+                           COUNT(DISTINCT container_id), MAX(cpu_usage), 
+                           MAX(memory_usage), MAX("time") 
+                       FROM container_stats""")
+    return render_template('index.html', data=cur.fetchone())
 
 @app.route('/containers')
 def containers():
