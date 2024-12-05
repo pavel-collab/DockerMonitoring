@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+{% block title %}Index{% endblock %}
+{% block head %}
+  {{ super() }}
+  <style type="text/css">
+    .important { color: #336699; }
+  </style>
+{% endblock %}
+{% block sidebar %}
+    <a class="active" href="{{ url_for('main_page') }}">Home</a>
+    <a href="{{ url_for('containers') }}">Containers</a>
+{% endblock %}
+{% block content %}
+  <h1>Index</h1>
+{% endblock %}
