@@ -18,16 +18,15 @@ def main_page():
 def containers():
     with dbm.connect(dbname=DB_NAME) as con:
         cur = con.cursor()
-        cur.execute(
-            """SELECT
-                container_id,
-                AVG(cpu_usage) AS avg_cpu_usage,
-                AVG(memory_usage) AS avg_memory_usage,
-                MAX("time") AS last_update_time
-            FROM container_stats
-            GROUP BY container_id"""
-        )
-    return render_template('containers.html', rows=cur.fetchall())
+        cur.execute("SELECT * FROM dashboard_table")
+    return render_template('containers_table.html', rows=cur.fetchall())
+
+@app.route('/containers/<container_id>')
+def container_page(container_id):
+    with dbm.connect(dbname=DB_NAME) as con:
+        cur = con.cursor()
+        cur.execute("SELECT * FROM container_stats WHERE container_id = (%s)", (container_id,))
+    return render_template('container_page.html', rows=cur.fetchall(), id=container_id)
 
 
 if __name__ == '__main__':
