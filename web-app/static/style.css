@@ -114,3 +114,36 @@ h1 {
   line-height: 32px;
   margin: 0;
 }
+
+h3 {
+  color: var(--app-content-main-color);
+}
+
+p {
+  color: var(--app-content-main-color);
+}
+
+.plot_container{
+  display: flex;
+}
+.plot_left{
+  width: 50%;
+}
+.plot_right{
+  flex-grow: 1;
+}
+
+.tiles-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.tile {
+  flex: 1 0 300px;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 5px;
+  border-radius: 5px;
+  transition: transform 0.3s ease-in-out;
+}
