@@ -1,0 +1,130 @@
+{% extends "layout.html" %}
+{% block title %}Docker Monitoring Homepage{% endblock %}
+{% block head %}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+  {{ super() }}
+  <style type="text/css">
+    .important { color: #336699; }
+  </style>
+{% endblock %}
+{% block sidebar %}
+    <a class="active" href="{{ url_for('general_bp.main_page') }}">Home</a>
+    <a href="{{ url_for('containers_bp.containers') }}">Containers</a>
+{% endblock %}
+{% block content %}
+  <h1>Docker Monitoring Homepage</h1>
+  <br>
+  <div class="tiles-container" id="tile_container">
+    <div class="tile-4">
+        <h3 class="tile_text">Containers Number</h3>
+        <br>
+        <h1 class="tile_text">{{tile_data[0]}}</h1>
+    </div>
+    <div class="tile-4">
+        <h3 class="tile_text">Top CPU usage</h3>
+        <br>
+        <h1 class="tile_text">{{tile_data[1]}}</h1>
+    </div>
+    <div class="tile-4">
+        <h3 class="tile_text">Top Memory usage</h3>
+        <br>
+        <h1 class="tile_text">{{tile_data[2]}}</h1>
+    </div>
+    <div class="tile-4">
+        <h3 class="tile_text">Last entry</h3>
+        <br>
+        <h1 class="tile_text">{{tile_data[3].strftime("%Y-%m-%d %H:%M:%S")}}</h1>
+    </div>
+  </div>
+  <h3>Latest activity</h3>
+  <div id="plots_container">
+    <div class="htile">
+        <canvas id="cpuUsageChart"></canvas>
+    </div>
+    <br>
+    <div class="htile">
+        <canvas id="memoryUsageChart"></canvas>
+    </div>
+  </div>
+  <script>
+    const cpu_usage_data = {
+        datasets: [
+            {%- for container in plot_data -%}
+            {
+                label: "{{ container[0] }}",
+                data: [
+                    {% for index in range(container[1] | length) %}
+                        {x: "{{ container[1][index][3] }}", y: {{ container[1][index][1] }} },
+                    {% endfor %}
+                ]
+            },
+            {%- endfor -%}
+        ]
+    };
+
+    const cpu_usage_config = {
+        type: 'line',
+        data: cpu_usage_data,
+        options: { 
+            maintainAspectRatio: false,
+            scales: {
+                x: { type: 'time' }
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'CPU Usage'
+                },
+                legend: { display: true }
+            }
+        }
+    };
+
+    const cpuUsageChart = new Chart(
+        document.getElementById('cpuUsageChart'),
+        cpu_usage_config
+    );
+
+    const memory_usage_data = {
+        datasets: [
+            {%- for container in plot_data -%}
+            {
+                label: "{{ container[0] }}",
+                data: [
+                    {% for index in range(container[1] | length) %}
+                        {x: "{{ container[1][index][3] }}", y: {{ container[1][index][2] }} },
+                    {% endfor %}
+                ]
+            },
+            {%- endfor -%}
+        ]
+    };
+
+    const memory_usage_config = {
+        type: 'line',
+        data: cpu_usage_data,
+        options: { 
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    type: 'time',
+                }
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Memory Usage'
+                },
+                legend: { display: true }
+            }
+        }
+    };
+
+    const memoryUsageChart = new Chart(
+        document.getElementById('memoryUsageChart'),
+        memory_usage_config
+    );
+  </script>
+
+{% endblock %}
