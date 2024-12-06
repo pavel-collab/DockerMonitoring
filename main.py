@@ -4,7 +4,7 @@ from docker import DockerClient
 
 # Подключение к TimescaleDB
 conn = psycopg2.connect(
-    dbname='postgres',
+    dbname='containers',
     user=  'postgres',
     # password='your_password',
     host='192.168.0.143',  # или ваш хост TimescaleDB
