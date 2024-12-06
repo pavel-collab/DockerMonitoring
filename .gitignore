@@ -1,4 +1,4 @@
-# Python virtual environment
+# Python files
 .venv
 __pycache__
 logs
