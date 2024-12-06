@@ -6,8 +6,8 @@
     {{ super() }}
 {% endblock %}
 {% block sidebar %}
-    <a href="{{ url_for('main_page') }}">Home</a>
-    <a class="active" href="{{ url_for('containers') }}">Containers</a>
+    <a href="{{ url_for('general_bp.main_page') }}">Home</a>
+    <a class="active" href="{{ url_for('containers_bp.containers') }}">Containers</a>
 {% endblock %}
 {% block content %}
   <h1>Containers</h1>
@@ -17,7 +17,7 @@
         columns: [
           { id: 'container_id', 
             name: 'Container ID',
-            formatter: (cell) => gridjs.html(`<a href='{{ url_for('containers') }}/${cell}'>${cell}</a>`)
+            formatter: (cell) => gridjs.html(`<a href='{{ url_for('containers_bp.containers') }}/${cell}'>${cell}</a>`)
           },
           { id: 'avg_cpu_usage', name: 'AVG CPU usage' },
           { id: 'avg_memory_usage', name: 'AVG memory usage' },

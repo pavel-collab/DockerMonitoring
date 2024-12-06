@@ -8,8 +8,8 @@
     {{ super() }}
 {% endblock %}
 {% block sidebar %}
-    <a href="{{ url_for('main_page') }}">Home</a>
-    <a class="active" href="{{ url_for('containers') }}">Containers</a>
+    <a href="{{ url_for('general_bp.main_page') }}">Home</a>
+    <a class="active" href="{{ url_for('containers_bp.containers') }}">Containers</a>
 {% endblock %}
 {% block content %}
   <h1>Container Page</h1>
@@ -37,8 +37,6 @@
   <script>
     const cpu_usage_data = {
         datasets: [{
-            backgroundColor: 'rgb(255, 99, 132)',
-            borderColor: 'rgb(255, 99, 132)',
             data: [
                 {% for index in range(rows | length) %}
                     {x: "{{ time[index] }}", y: {{ cpu_usage[index] }} },
@@ -72,8 +70,6 @@
 
     const memory_usage_data = {
         datasets: [{
-            backgroundColor: 'rgb(255, 99, 132)',
-            borderColor: 'rgb(255, 99, 132)',
             data: [
                 {% for index in range(rows | length) %}
                     {x: "{{ time[index] }}", y: {{ memory_usage[index] }} },
