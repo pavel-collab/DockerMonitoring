@@ -1,83 +1,70 @@
 from docker import DockerClient
 import psycopg2
+from psycopg2 import OperationalError
 import os
 import json
+import time
 
-APP_ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+MAX_CONNECTION_ATTEMPTS = 8
+DELAY = 2
 
-DEFAULT_POSTGRES_PORT = 5432
-DEFAULT_POSTGRES_USER = "postgres"
-DEFAULT_POSTGRES_DB = "postgres"
-
-CONFIG_PATH = {APP_ROOT_DIR} + "/conf/"
-CONNECTION_CONFIG_NAME = "connection.json"
-
-def parse_connection_arguments():
-    connection_parameters = {}
-    with open(CONFIG_PATH + "/" + CONNECTION_CONFIG_NAME) as connection_config_file:
-        json_parameters = json.load(connection_config_file)
-        if not set(['dbname', 'host_ip', 'user', 'port']).issubset(set(json_parameters.keys())):
-            raise RuntimeError("There are not all parameters in the connection configuration file.")
-        
-        connection_parameters['dbname'] = DEFAULT_POSTGRES_DB if json_parameters['dbname'] == 'default' else json_parameters['dbname']
-        connection_parameters['user'] = DEFAULT_POSTGRES_USER if json_parameters['user'] == 'default' else json_parameters['user']
-        connection_parameters['port'] = DEFAULT_POSTGRES_PORT if json_parameters['port'] == 'default' else json_parameters['port']
-        connection_parameters['host_ip'] = json_parameters['host_ip']
-        if json_parameters['password'] != "":
-            connection_parameters['password'] = json_parameters['password']
-
-    return connection_parameters
-
-#! need to make a real class, on this stage it uses more like C-structures (collection of the objects)
-#! need to move connect_db and close_connection to the class methods
 class DBConnection:
-    def __init__(self, conn, cur):
-        self.conn = conn
-        self.cur = cur
+    def __init__(self, connection_parameters):
+        if not set(['dbname', 'host_ip', 'user', 'port']).issubset(set(connection_parameters.keys())):
+            raise RuntimeError("There are not all parameters in the connection parsmeters")
 
-def connect_db():
-    try:
-        connection_parameters = parse_connection_arguments()
-    except RuntimeError as ex:
-        print(f'[Err] exception has been caught during argument parsing: {ex}')
+        self.connect_db(connection_parameters)
 
-    try:
-        conn = psycopg2.connect(
-            dbname=connection_parameters['dbname'],
-            user=connection_parameters['user'],
-            host=connection_parameters['host_ip'],
-            port=connection_parameters['port']
-        )
-        cursor = conn.cursor()
-    except Exception as ex:
-        print(f'[Err] exception has been caught during establishing connection to db: {ex}')
+    def connect_db(self, connection_parameters):
+        attempts = 0
+        while attempts < MAX_CONNECTION_ATTEMPTS:
+            try:
+                self.conn = psycopg2.connect(
+                    dbname=connection_parameters['dbname'],
+                    user=connection_parameters['user'],
+                    host=connection_parameters['host_ip'],
+                    port=connection_parameters['port']
+                )
+                self.cursor = self.conn.cursor()
+                print("Connection Success!")
+            except OperationalError as e:
+                attempts += 1
+                print(f"Connection error: {e}. Attempt {attempts}/{MAX_CONNECTION_ATTEMPTS}.")
+                time.sleep(DELAY)
+            except Exception as ex:
+                print(f'[Err] exception has been caught during establishing connection to db: {ex}')
+            finally:
+                if 'connection' in locals() and self.conn is not None:
+                    self.conn.close()
+        print("Error, max attempts of connection overlay")
+        raise RuntimeError("max attempts of connection overlay")
 
-    db_connection = DBConnection(conn=conn,
-                                 cur=cursor)
-    return db_connection
+    def start_docker_client(self):
+        try:
+            self.docker_client = DockerClient(base_url='unix://var/run/docker.sock')
+        except Exception as ex:
+            print(f'[Err] exception has been caught during starting docker client: {ex}')
 
-def start_docker_client():
-    try:
-        docker_client = DockerClient(base_url='unix://var/run/docker.sock')
-    except Exception as ex:
-        print(f'[Err] exception has been caught during starting docker client: {ex}')
-    return docker_client
+    def collect_stats(self):
+        containers = self.docker_client.containers.list()
+        for container in containers:
+            stats = container.stats(stream=False)
+            cpu_usage = stats['cpu_stats']['cpu_usage']['total_usage']
 
-def collect_stats(docker_client, db_connection):
-    containers = docker_client.containers.list()
-    for container in containers:
-        stats = container.stats(stream=False)
-        cpu_usage = stats['cpu_stats']['cpu_usage']['total_usage']
-        memory_usage = stats['memory_stats']['usage']
-        container_id = container.id
+            if not 'memory_stats' in stats:
+                memory_usage = None
+            else:
+                memory_usage = stats['memory_stats']['usage']
+            
+            container_id = container.id
 
-        # Вставка данных в TimescaleDB
-        db_connection.cursor.execute(
-            "INSERT INTO container_stats (container_id, cpu_usage, memory_usage) VALUES (%s, %s, %s)",
-            (container_id, cpu_usage, memory_usage)
-        )
-        db_connection.conn.commit()
+            self.cursor.execute(
+                "INSERT INTO container_stats (container_id, cpu_usage, memory_usage) VALUES (%s, %s, %s)",
+                (container_id, cpu_usage, memory_usage)
+            )
+            self.conn.commit()
 
-def close_db_connection(db_connection):
-    db_connection.cursor.close()
-    db_connection.conn.close()
+    def close_db_connection(self):
+        self.cursor.close()
+        self.conn.close()
+        print("Closed Connection!")
