@@ -1,2 +1,9 @@
+# Python files
 .venv
 __pycache__
+
+# macOS specific files
+.DS_Store
+
+# folder with local files
+local
