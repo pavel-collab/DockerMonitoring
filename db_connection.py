@@ -4,6 +4,11 @@ from psycopg2 import OperationalError
 import os
 import json
 import time
+import logging
+
+import logger_config
+
+logger = logging.getLogger(__name__)
 
 MAX_CONNECTION_ATTEMPTS = 8
 DELAY = 2
@@ -27,25 +32,25 @@ class DBConnection:
                     port=connection_parameters['port']
                 )
                 self.cursor = self.conn.cursor()
-                print("Connection Success!")
+                logger.info("Connection Success!")
                 return 
             except OperationalError as e:
                 attempts += 1
-                print(f"Connection error: {e}. Attempt {attempts}/{MAX_CONNECTION_ATTEMPTS}.")
+                logger.error(f"Attempt {attempts}/{MAX_CONNECTION_ATTEMPTS}. Connection error: {e}")
                 time.sleep(DELAY)
             except Exception as ex:
-                print(f'[Err] exception has been caught during establishing connection to db: {ex}')
+                logger.critical(f'[Err] exception has been caught during establishing connection to db: {ex}')
             finally:
                 if 'connection' in locals() and self.conn is not None:
                     self.conn.close()
-        print("Error, max attempts of connection overlay")
+        logger.critical("Error, max attempts of connection overlay")
         raise RuntimeError("max attempts of connection overlay")
 
     def start_docker_client(self):
         try:
             self.docker_client = DockerClient(base_url='unix://var/run/docker.sock')
         except Exception as ex:
-            print(f'[Err] exception has been caught during starting docker client: {ex}')
+            logger.error(f'[Err] exception has been caught during starting docker client: {ex}')
 
     def collect_stats(self):
         containers = self.docker_client.containers.list()
@@ -69,4 +74,4 @@ class DBConnection:
     def close_db_connection(self):
         self.cursor.close()
         self.conn.close()
-        print("Closed Connection!")
+        logger.info("Closed Connection!")
