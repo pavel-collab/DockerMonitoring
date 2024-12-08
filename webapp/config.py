@@ -29,11 +29,12 @@ class Config:
 class ProdConfig(Config):
     DEBUG = False
     FLASK_SERVER_IP = environ.get('FLASK_SERVER_IP')
+    DB_URI = environ.get('DATABASE_URI')
 
 class DevConfig(Config):
     FLASK_ENV = 'development'
     DEBUG = True
     TESTING = True
-    DB_URI = environ.get('DEV_DATABASE_URI')
+    DB_URI = environ.get('DATABASE_URI')
     # TODO: Is it possible to check this DB_URI before assignment?
     # Definitely yes, but if inside property works badly

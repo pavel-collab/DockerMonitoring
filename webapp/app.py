@@ -5,7 +5,7 @@ from general.general import general_bp
 
 app = Flask(__name__)
 
-app.config.from_object('config.DevConfig')
+app.config.from_object('config.ProdConfig')
 
 app.register_blueprint(general_bp)
 app.register_blueprint(containers_bp, url_prefix='/containers')
