@@ -7,12 +7,17 @@ DEFAULT_POSTGRES_PORT = 5432
 DEFAULT_POSTGRES_USER = "postgres"
 DEFAULT_POSTGRES_DB = "postgres"
 
-CONFIG_PATH = {APP_ROOT_DIR} + "/conf/"
+CONFIG_PATH = APP_ROOT_DIR + "/conf/"
 CONNECTION_CONFIG_NAME = "connection.json"
 
 def parse_connection_arguments():
     connection_parameters = {}
-    with open(CONFIG_PATH + "/" + CONNECTION_CONFIG_NAME) as connection_config_file:
+    config_file_path = f"{CONFIG_PATH}/{CONNECTION_CONFIG_NAME}"
+    if not os.path.isfile(config_file_path):
+        print(f"Error, there is no file {config_file_path}")
+        raise Exception(f"Error, there is no file {config_file_path}")
+
+    with open() as connection_config_file:
         json_parameters = json.load(connection_config_file)
         if not set(['dbname', 'host_ip', 'user', 'port']).issubset(set(json_parameters.keys())):
             raise RuntimeError("There are not all parameters in the connection configuration file.")

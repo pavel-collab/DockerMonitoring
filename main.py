@@ -17,6 +17,7 @@ def main():
         db_connection = DBConnection(connection_parameters)
     except Exception as ex:
         print(f'[Err] exception has been caught during creating db connection: {ex}')
+        exit(1)
 
     try:
         while True:

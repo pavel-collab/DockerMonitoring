@@ -14,6 +14,7 @@ class DBConnection:
             raise RuntimeError("There are not all parameters in the connection parsmeters")
 
         self.connect_db(connection_parameters)
+        self.start_docker_client()
 
     def connect_db(self, connection_parameters):
         attempts = 0
@@ -27,6 +28,7 @@ class DBConnection:
                 )
                 self.cursor = self.conn.cursor()
                 print("Connection Success!")
+                return 
             except OperationalError as e:
                 attempts += 1
                 print(f"Connection error: {e}. Attempt {attempts}/{MAX_CONNECTION_ATTEMPTS}.")
