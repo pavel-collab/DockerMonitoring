@@ -1,6 +1,6 @@
 {
-    "dbname": "default",
-    "host_ip": "192.168.133.31",
+    "dbname": "containers",
+    "host_ip": "192.168.0.143",
     "user": "default",
     "port": "default",
     "password": ""
