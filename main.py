@@ -1,40 +1,31 @@
 import time
-import psycopg2
-from docker import DockerClient
+import json
+import os
 
-# Подключение к TimescaleDB
-conn = psycopg2.connect(
-    dbname='containers',
-    user=  'postgres',
-    # password='your_password',
-    host='192.168.0.143',  # или ваш хост TimescaleDB
-    port='5432'
-)
-cursor = conn.cursor()
+from db_connection import DBConnection
+from arguments_parsing import parse_connection_arguments
 
-# Создание Docker клиента
-docker_client = DockerClient(base_url='unix://var/run/docker.sock')
+SLEEP_INTERVAL = 10 # sec
 
-def collect_stats():
-    containers = docker_client.containers.list()
-    for container in containers:
-        stats = container.stats(stream=False)
-        cpu_usage = stats['cpu_stats']['cpu_usage']['total_usage']
-        memory_usage = stats['memory_stats']['usage']
-        container_id = container.id
+def main():
+    try:
+        connection_parameters = parse_connection_arguments()
+    except RuntimeError as ex:
+        print(f'[Err] exception has been caught during argument parsing: {ex}')
 
-        # Вставка данных в TimescaleDB
-        cursor.execute(
-            "INSERT INTO container_stats (container_id, cpu_usage, memory_usage) VALUES (%s, %s, %s)",
-            (container_id, cpu_usage, memory_usage)
-        )
-        conn.commit()
+    try:
+        db_connection = DBConnection(connection_parameters)
+    except Exception as ex:
+        print(f'[Err] exception has been caught during creating db connection: {ex}')
+        exit(1)
 
-try:
-    while True:
-        collect_stats()
-        time.sleep(10)  # Интервал сбора статистики
-except KeyboardInterrupt:
-    cursor.close()
-    conn.close()
-    print("[INFO] end of collect docker stats")
+    try:
+        while True:
+            db_connection.collect_stats()
+            time.sleep(SLEEP_INTERVAL)
+    except KeyboardInterrupt:
+        db_connection.close_db_connection()
+        print("[INFO] end of collect docker stats")
+
+if __name__ == '__main__':
+    main()
