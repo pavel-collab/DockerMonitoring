@@ -16,7 +16,7 @@ DELAY = 2
 class DBConnection:
     def __init__(self, connection_parameters):
         if not set(['dbname', 'host_ip', 'user', 'port']).issubset(set(connection_parameters.keys())):
-            raise RuntimeError("There are not all parameters in the connection parsmeters")
+            raise RuntimeError(f"There are not all parameters in the connection parsmeters: {connection_parameters.keys()}")
 
         self.connect_db(connection_parameters)
         self.start_docker_client()
@@ -36,10 +36,10 @@ class DBConnection:
                 return 
             except OperationalError as e:
                 attempts += 1
-                logger.error(f"Attempt {attempts}/{MAX_CONNECTION_ATTEMPTS}. Connection error: {e}")
+                logger.error(f"Attempt {attempts}/{MAX_CONNECTION_ATTEMPTS}", exc_info=True)
                 time.sleep(DELAY)
             except Exception as ex:
-                logger.critical(f'[Err] exception has been caught during establishing connection to db: {ex}')
+                logger.critical(f'Exception has been caught during establishing connection to db.', exc_info=True)
             finally:
                 if 'connection' in locals() and self.conn is not None:
                     self.conn.close()
@@ -50,7 +50,7 @@ class DBConnection:
         try:
             self.docker_client = DockerClient(base_url='unix://var/run/docker.sock')
         except Exception as ex:
-            logger.error(f'[Err] exception has been caught during starting docker client: {ex}')
+            logger.error(f'Exception has been caught during starting docker client.', exc_info=True)
 
     def collect_stats(self):
         containers = self.docker_client.containers.list()
