@@ -4,6 +4,11 @@ from psycopg2 import OperationalError
 import os
 import json
 import time
+import logging
+
+import logger_config
+
+logger = logging.getLogger(__name__)
 
 MAX_CONNECTION_ATTEMPTS = 8
 DELAY = 2
@@ -11,7 +16,7 @@ DELAY = 2
 class DBConnection:
     def __init__(self, connection_parameters):
         if not set(['dbname', 'host_ip', 'user', 'port']).issubset(set(connection_parameters.keys())):
-            raise RuntimeError("There are not all parameters in the connection parsmeters")
+            raise RuntimeError(f"There are not all parameters in the connection config: {connection_parameters.keys()}")
 
         self.connect_db(connection_parameters)
         self.start_docker_client()
@@ -27,25 +32,24 @@ class DBConnection:
                     port=connection_parameters['port']
                 )
                 self.cursor = self.conn.cursor()
-                print("Connection Success!")
+                logger.info("Connection Success!")
                 return 
-            except OperationalError as e:
+            except OperationalError:
                 attempts += 1
-                print(f"Connection error: {e}. Attempt {attempts}/{MAX_CONNECTION_ATTEMPTS}.")
+                logger.error(f"Attempt {attempts}/{MAX_CONNECTION_ATTEMPTS}", exc_info=True)
                 time.sleep(DELAY)
-            except Exception as ex:
-                print(f'[Err] exception has been caught during establishing connection to db: {ex}')
+            except Exception:
+                logger.critical(f'Exception has been caught during establishing connection to db.', exc_info=True)
             finally:
                 if 'connection' in locals() and self.conn is not None:
                     self.conn.close()
-        print("Error, max attempts of connection overlay")
         raise RuntimeError("max attempts of connection overlay")
 
     def start_docker_client(self):
         try:
             self.docker_client = DockerClient(base_url='unix://var/run/docker.sock')
-        except Exception as ex:
-            print(f'[Err] exception has been caught during starting docker client: {ex}')
+        except Exception:
+            logger.error(f'Exception has been caught during starting docker client.', exc_info=True)
 
     def collect_stats(self):
         containers = self.docker_client.containers.list()
@@ -69,4 +73,4 @@ class DBConnection:
     def close_db_connection(self):
         self.cursor.close()
         self.conn.close()
-        print("Closed Connection!")
+        logger.info("Closed Connection!")
