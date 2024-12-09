@@ -15,12 +15,12 @@ SLEEP_INTERVAL = 10 # sec
 def main():
     try:
         connection_parameters = parse_connection_arguments()
-    except RuntimeError as ex:
+    except RuntimeError:
         logger.critical(f'Exception has been caught during argument parsing.', exc_info=True)
 
     try:
         db_connection = DBConnection(connection_parameters)
-    except Exception as ex:
+    except Exception:
         logger.critical(f'Exception has been caught during creating db connection.', exc_info=True)
         exit(1)
 

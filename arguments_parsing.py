@@ -42,10 +42,10 @@ def parse_connection_arguments():
             get_parameter_from_json('port', json_parameters, connection_parameters)     
             get_parameter_from_json('host_ip', json_parameters, connection_parameters)
     except FileNotFoundError:
-        print(f"File not found: {config_file_path}")
+        logger.error(f"File not found: {config_file_path}", exc_info=True)
     except PermissionError:
-        print(f"File permission denied: {config_file_path}")
-    except Exception as e:
-        print(f"Error during file open: {e}")
+        logger.error(f"File permission denied: {config_file_path}", exc_info=True)
+    except Exception:
+        logger.error(f"Error during file open", exc_info=True)
 
     return connection_parameters.copy()

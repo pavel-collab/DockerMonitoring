@@ -6,8 +6,12 @@ CORE_LOG_FILE = "core.log"
 
 def setup_logger():
     if not os.path.exists(DEFAULT_LOG_DIRECTORY):
-        os.makedirs(DEFAULT_LOG_DIRECTORY)
-    
+        try:
+            os.makedirs(DEFAULT_LOG_DIRECTORY)
+        except OSError as ex:
+            print(f"Error durin creating directory {DEFAULT_LOG_DIRECTORY}: {ex}")
+            exit(1)
+
     log_file_path = os.path.join(DEFAULT_LOG_DIRECTORY, CORE_LOG_FILE)
 
     # Here we're able to set particular lever for each handler
