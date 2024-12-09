@@ -63,8 +63,6 @@ class DBConnection:
 
             container_name = stats['name']
             container_id = stats['id']
-            stat_unixtime = stats['read'] # строка в формате UNIX time
-            stat_timestampz_time = self.unixtime2timestampz(stat_unixtime)
 
             memory_stats = self.get_container_memory_statistics(stats)
             cpu_stats = self.get_container_cpu_statistics(stats)
@@ -75,23 +73,23 @@ class DBConnection:
                 container_exists = self.cursor.fetchone()[0]
                 if not container_exists:
                     self.cursor.execute(
-                        "INSERT INTO container_info (id, name, memoty_limit) VALUES (%s, %s, %s)",
+                        "INSERT INTO container_info (id, name, memory_limit) VALUES (%s, %s, %s)",
                         (container_id, container_name, memory_stats['memory_limit'])
                     )
 
                 self.cursor.execute(
-                    "INSERT INTO container_stats (container_id, cpu_usage, memory_usage, time) VALUES (%s, %s, %s, %s)",
-                    (container_id, cpu_stats['cpu_usage'], memory_stats['memory_usage'], stat_timestampz_time)
+                    "INSERT INTO container_stats (container_id, cpu_usage, memory_usage) VALUES (%s, %s, %s)",
+                    (container_id, cpu_stats['cpu_usage'], memory_stats['memory_usage'])
                 )
                 self.cursor.execute(
-                    "INSERT INTO container_detailed_statistics (id, time, kernel_cpu_usage, user_cpu_usage, system_cpu_usage) VALUES (%s, %s, %s, %s, %s)",
-                    (container_id, stat_timestampz_time, cpu_stats['kernel_cpu_usage'], cpu_stats['user_cpu_usage'], cpu_stats['system_cpu_usage'])
+                    "INSERT INTO container_detailed_statistics (id, kernel_cpu_usage, user_cpu_usage, system_cpu_usage) VALUES (%s, %s, %s, %s)",
+                    (container_id, cpu_stats['kernel_cpu_usage'], cpu_stats['user_cpu_usage'], cpu_stats['system_cpu_usage'])
                 )
 
                 for network, net_stat in network_stats.items():
                     self.cursor.execute(
-                        "INSERT INTO container_networks (id, time, network_name, resieved_bytes, transmited_bytes) VALUES (%s, %s, %s, %s, %s)",
-                        (container_id, stat_timestampz_time, network, net_stat['resieved_bytes'], net_stat['transmited_bytes'])
+                        "INSERT INTO container_networks (id, network_name, resieved_bytes, transmited_bytes) VALUES (%s, %s, %s, %s)",
+                        (container_id, network, net_stat['resieved_bytes'], net_stat['transmited_bytes'])
                     )
                 self.conn.commit()
             except Exception:
@@ -107,8 +105,8 @@ class DBConnection:
         This metrics in nanoseconds -- how many nanoseconds container take on a cpu, in user mode, etc
         '''
         cpu_usage        = stats['cpu_stats']['cpu_usage']['total_usage']
-        kernel_cpu_usage = stats['cpu_stats']['cpu_usage']['usega_in_kernelmode']
-        user_cpu_usage   = stats['cpu_stats']['cpu_usage']['usega_in_usermode']
+        kernel_cpu_usage = stats['cpu_stats']['cpu_usage']['usage_in_kernelmode']
+        user_cpu_usage   = stats['cpu_stats']['cpu_usage']['usage_in_usermode']
         system_cpu_usage = stats['cpu_stats']['system_cpu_usage']
 
         cpu_stats = {
@@ -133,15 +131,7 @@ class DBConnection:
         network_stats = {}
         for network in stats['networks'].keys():
             network_stats[network] = {
-                "resieved_bytes": stats['networks']['rx_bytes'],
-                "transmited_bytes": stats['networks']['tx_packets']
+                "resieved_bytes": stats['networks'][network]['rx_bytes'],
+                "transmited_bytes": stats['networks'][network]['tx_packets']
             }
         return network_stats
-
-    def unixtime2timestampz(self, unix_time):
-        self.cursor.execute(
-            "SELECT TO_TIMESTAMP(%s) AT TIME ZONE 'UTC'",
-            (unix_time,)
-        )
-        timestampz_time = self.cursor.fetchone()[0]
-        return timestampz_time
