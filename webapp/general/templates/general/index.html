@@ -38,93 +38,96 @@
     </div>
   </div>
   <h3>Latest activity</h3>
-  <div id="plots_container">
-    <div class="htile">
-        <canvas id="cpuUsageChart"></canvas>
+  {% if plot_data %}
+    <div id="plots_container">
+        <div class="htile">
+            <canvas id="cpuUsageChart"></canvas>
+        </div>
+        <br>
+        <div class="htile">
+            <canvas id="memoryUsageChart"></canvas>
+        </div>
     </div>
-    <br>
-    <div class="htile">
-        <canvas id="memoryUsageChart"></canvas>
-    </div>
-  </div>
-  <script>
-    const cpu_usage_data = {
-        datasets: [
-            {%- for container in plot_data -%}
-            {
-                label: "{{ container[0] }}",
-                data: [
-                    {% for index in range(container[1] | length) %}
-                        {x: "{{ container[1][index][3] }}", y: {{ container[1][index][1] }} },
-                    {% endfor %}
-                ]
-            },
-            {%- endfor -%}
-        ]
-    };
-
-    const cpu_usage_config = {
-        type: 'line',
-        data: cpu_usage_data,
-        options: { 
-            maintainAspectRatio: false,
-            scales: {
-                x: { type: 'time' }
-            },
-            plugins: {
-                title: {
-                    display: true,
-                    text: 'CPU Usage'
+    
+    <script>
+        const cpu_usage_data = {
+            datasets: [
+                {%- for container in plot_data -%}
+                {
+                    label: "{{ container[0] }}",
+                    data: [
+                        {% for index in range(container[1] | length) %}
+                            {x: "{{ container[1][index][3] }}", y: {{ container[1][index][1] }} },
+                        {% endfor %}
+                    ]
                 },
-                legend: { display: true }
-            }
-        }
-    };
+                {%- endfor -%}
+            ]
+        };
 
-    const cpuUsageChart = new Chart(
-        document.getElementById('cpuUsageChart'),
-        cpu_usage_config
-    );
-
-    const memory_usage_data = {
-        datasets: [
-            {%- for container in plot_data -%}
-            {
-                label: "{{ container[0] }}",
-                data: [
-                    {% for index in range(container[1] | length) %}
-                        {x: "{{ container[1][index][3] }}", y: {{ container[1][index][2] }} },
-                    {% endfor %}
-                ]
-            },
-            {%- endfor -%}
-        ]
-    };
-
-    const memory_usage_config = {
-        type: 'line',
-        data: cpu_usage_data,
-        options: { 
-            maintainAspectRatio: false,
-            scales: {
-                x: {
-                    type: 'time',
+        const cpu_usage_config = {
+            type: 'line',
+            data: cpu_usage_data,
+            options: { 
+                maintainAspectRatio: false,
+                scales: {
+                    x: { type: 'time' }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'CPU Usage'
+                    },
+                    legend: { display: true }
                 }
-            },
-            plugins: {
-                title: {
-                    display: true,
-                    text: 'Memory Usage'
-                },
-                legend: { display: true }
             }
-        }
-    };
+        };
 
-    const memoryUsageChart = new Chart(
-        document.getElementById('memoryUsageChart'),
-        memory_usage_config
-    );
-  </script>
+        const cpuUsageChart = new Chart(
+            document.getElementById('cpuUsageChart'),
+            cpu_usage_config
+        );
+
+        const memory_usage_data = {
+            datasets: [
+                {%- for container in plot_data -%}
+                {
+                    label: "{{ container[0] }}",
+                    data: [
+                        {% for index in range(container[1] | length) %}
+                            {x: "{{ container[1][index][3] }}", y: {{ container[1][index][2] }} },
+                        {% endfor %}
+                    ]
+                },
+                {%- endfor -%}
+            ]
+        };
+
+        const memory_usage_config = {
+            type: 'line',
+            data: cpu_usage_data,
+            options: { 
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        type: 'time',
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Memory Usage'
+                    },
+                    legend: { display: true }
+                }
+            }
+        };
+
+        const memoryUsageChart = new Chart(
+            document.getElementById('memoryUsageChart'),
+            memory_usage_config
+        );
+    </script>
+  {% endif %}
 
 {% endblock %}

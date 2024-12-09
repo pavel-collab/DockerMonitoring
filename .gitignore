@@ -8,3 +8,6 @@ logs
 
 # folder with local files
 local
+
+# logs
+.log
