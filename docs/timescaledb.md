@@ -82,18 +82,18 @@ ALTER TABLE container_stats
 
 Таблица для общей информации по контейнерам. Содержит имя контейнера, соответствующий id и ограничение по памяти.
 ```
--- Создаем тмаблицу
+-- Создаем таблицу
 CREATE TABLE container_info (id TEXT NOT NULL, 
                              name TEXT, 
                              memory_limit DOUBLE PRECISION);
 
--- Создаем первычный ключ в этой таблийе (она будет основной, все остальные таблицы будут ссылаться на нее)
+-- Создаем первичный ключ в эту таблицу (она будет основной, все остальные таблицы будут ссылаться на нее)
 ALTER TABLE container_info ADD CONSTRAINT container_id PRIMARY KEY (id);
 ```
 
-Более детальная статистика по занятовсти CPU. Содержит время, занимаемое на CPU в kernel, user и system состояниях.
+Более детальная статистика по занятости CPU. Содержит время, занимаемое на CPU в kernel, user и system состояниях.
 ```
--- заводим таблицу
+-- Заводим таблицу
 CREATE TABLE container_detailed_statistics (id TEXT, 
                                             time TIMESTAMPTZ NOT NULL DEFAULT NOW(),
                                             kernel_cpu_usage DOUBLE PRECISION, 
@@ -116,7 +116,7 @@ ALTER TABLE container_detailed_statistics
 
 Статистика по сетевым соединениям контейнеров.
 ```
--- Создаем тмаблицу
+-- Создаем таблицу
 CREATE TABLE container_networks (id TEXT,
                                  time TIMESTAMPTZ NOT NULL DEFAULT NOW(),
                                  network_name TEXT,
