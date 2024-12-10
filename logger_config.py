@@ -1,8 +1,11 @@
 import logging
 import os
+from datetime import datetime
+
+current_date = datetime.strftime(datetime.now(), "%d-%m-%Y")
 
 DEFAULT_LOG_DIRECTORY = "logs"
-CORE_LOG_FILE = "core.log"
+CORE_LOG_FILE = f"core-log-{current_date}.log"
 
 def setup_logger():
     if not os.path.exists(DEFAULT_LOG_DIRECTORY):
