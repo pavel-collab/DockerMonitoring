@@ -1,7 +1,5 @@
 import sys
 import secrets
-import logging
-import os
 
 from flask import Flask
 from logging.config import dictConfig
@@ -11,6 +9,7 @@ from containers.containers import containers_bp
 from general.general import general_bp
 from utils.config import load_webapp_config
 from utils.logging import get_webapp_dictConfig
+from utils.cache import cache
 
 DEFAULT_LOG_DIRECTORY = "logs"
 CORE_LOG_FILE = "webapp_logs.log"
@@ -29,7 +28,8 @@ except Exception:
     sys.exit(1)
 
 try:
-    config = load_webapp_config('config.json')
+    with app.app_context():
+        config = load_webapp_config('config.json')
 except Exception:
     app.logger.critical("Can't retrieve settings from config! Interrupting app run.", exc_info=True)
     sys.exit(1)
@@ -56,20 +56,28 @@ try:
     app.config.update(
         SECRET_KEY=secret
     )
-except:
+except Exception:
     app.logger.critical("Can't generate secret key for secure connection! Interrupting app run.", exc_info=True)
     sys.exit(1)
 
 try:
-    app.register_blueprint(general_bp)
-    app.register_blueprint(containers_bp, url_prefix='/containers')
-except:
+    with app.app_context():
+        app.register_blueprint(general_bp)
+        app.register_blueprint(containers_bp, url_prefix='/containers')
+except Exception:
     app.logger.critical("Can't register blueprints for app! Interrupting app run.", exc_info=True)
+    sys.exit(1)
+
+try:
+    cache.init_app(app)
+except Exception:
+    app.logger.critical("Error while configuring cache! Interrupting app run.", exc_info=True)
     sys.exit(1)
 
 if __name__ == '__main__':
     try:
         app.run(app.config["FLASK_SERVER_IP"], port=app.config["FLASK_SERVER_PORT"])
-    except:
+    except Exception:
         app.logger.critical("Error while running app! Interrupting app run.", exc_info=True)
         sys.exit(1)
+    
