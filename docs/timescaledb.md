@@ -77,3 +77,62 @@ ALTER TABLE container_stats
          timescaledb.compress_orderby='time', 
          timescaledb.compress_segmentby = 'container_id');
 ```
+
+## Создание дополнительных таблиц
+
+Таблица для общей информации по контейнерам. Содержит имя контейнера, соответствующий id и ограничение по памяти.
+```
+-- Создаем таблицу
+CREATE TABLE container_info (id TEXT NOT NULL, 
+                             name TEXT, 
+                             memory_limit DOUBLE PRECISION);
+
+-- Создаем первичный ключ в эту таблицу (она будет основной, все остальные таблицы будут ссылаться на нее)
+ALTER TABLE container_info ADD CONSTRAINT container_id PRIMARY KEY (id);
+```
+
+Более детальная статистика по занятости CPU. Содержит время, занимаемое на CPU в kernel, user и system состояниях.
+```
+-- Заводим таблицу
+CREATE TABLE container_detailed_statistics (id TEXT, 
+                                            time TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                                            kernel_cpu_usage DOUBLE PRECISION, 
+                                            user_cpu_usage DOUBLE PRECISION, 
+                                            system_cpu_usage DOUBLE PRECISION);
+
+-- Превращаем ее в гипертаблицу
+SELECT create_hypertable('container_detailed_statistics', 'time');
+
+-- Добавляем внешний ключ на основную таблицу
+ALTER TABLE container_detailed_statistics 
+    ADD CONSTRAINT container_id FOREIGN KEY (id) REFERENCES container_info(id) ON DELETE CASCADE;
+
+-- Настраиваем сжатие данных
+ALTER TABLE container_detailed_statistics 
+    SET (timescaledb.compress, 
+         timescaledb.compress_orderby='time', 
+         timescaledb.compress_segmentby = 'id');
+```
+
+Статистика по сетевым соединениям контейнеров.
+```
+-- Создаем таблицу
+CREATE TABLE container_networks (id TEXT,
+                                 time TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                                 network_name TEXT,
+                                 resieved_bytes DOUBLE PRECISION,
+                                 transmited_bytes DOUBLE PRECISION);
+
+-- Превращаем ее в гипертаблицу
+SELECT create_hypertable('container_networks', 'time');
+
+-- Добавляем внешний ключ на основную таблицу
+ALTER TABLE container_networks 
+    ADD CONSTRAINT container_id FOREIGN KEY (id) REFERENCES container_info(id) ON DELETE CASCADE;
+
+-- Настраиваем сжатие данных
+ALTER TABLE container_networks 
+    SET (timescaledb.compress, 
+         timescaledb.compress_orderby='time', 
+         timescaledb.compress_segmentby = 'id');
+```
