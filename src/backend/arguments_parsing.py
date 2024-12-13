@@ -2,11 +2,9 @@ import os
 import json
 import logging
 
-import logger_config
+import src.backend.logger_config
 
 logger = logging.getLogger(__name__)
-
-APP_ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 DEFAULT_POSTGRES_PORT = 5432
 DEFAULT_POSTGRES_USER = "postgres"
@@ -20,18 +18,15 @@ DEFAULT_PARAMETERS = {
     'host_ip': DEFAULT_POSTGRES_HOST
 }
 
-CONFIG_PATH = APP_ROOT_DIR + "/conf/"
-CONNECTION_CONFIG_NAME = "connection.json"
-
 def get_parameter_from_json(parameter_name, json_parameters, connection_parameters):
     if (parameter_name not in json_parameters.keys()) or (json_parameters[parameter_name] == 'default'):
         connection_parameters[parameter_name] = DEFAULT_PARAMETERS[parameter_name]
     else:
         connection_parameters[parameter_name] = json_parameters[parameter_name]
 
-def parse_connection_arguments():
+def parse_connection_arguments(config_path, connection_config_name):
     connection_parameters = {}
-    config_file_path = f"{CONFIG_PATH}/{CONNECTION_CONFIG_NAME}"
+    config_file_path = f"{config_path}/{connection_config_name}"
 
     try:
         with open(config_file_path) as connection_config_file:

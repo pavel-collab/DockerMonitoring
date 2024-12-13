@@ -1,20 +1,26 @@
 import time
-import json
 import os
 import logging
-
-import logger_config
+import sys
+ 
+import src.backend.logger_config
 
 logger = logging.getLogger(__name__)
 
-from db_connection import DBConnection
-from arguments_parsing import parse_connection_arguments
+from src.backend.db_connection import DBConnection
+from src.backend.arguments_parsing import parse_connection_arguments
+
+
+APP_ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+CONFIG_PATH = APP_ROOT_DIR + "/conf/"
+CONNECTION_CONFIG_NAME = "connection.json"
 
 SLEEP_INTERVAL = 10 # sec
 
 def main():
     try:
-        connection_parameters = parse_connection_arguments()
+        connection_parameters = parse_connection_arguments(CONFIG_PATH, CONNECTION_CONFIG_NAME)
     except RuntimeError:
         logger.critical(f'Exception has been caught during argument parsing.', exc_info=True)
 
