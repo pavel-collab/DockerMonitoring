@@ -54,11 +54,30 @@ class DBConnection:
             logger.error(f'Exception has been caught during starting docker client.', exc_info=True)
 
     def collect_stats(self):
-        containers = self.docker_client.containers.list()
+        # containers on the host
+        host_containers = self.docker_client.containers.list()
+        host_containers_ids = set([container.id for container in host_containers])
         if len(containers) == 0:
             return
+
+        # containers, saved in the db table
+        self.cursor.execute("SELECT * FROM container_info WHERE status = 'active'");
+        saved_containers = self.cursor.fetchall()
+        saved_containers_id = set([container[0] for container in saved_containers])
+
+        # we're using operations with set to know, what containers has died
+        died_containers = saved_containers_id - host_containers_ids
+        # update status for all of the containers which died
+        for container_id in died_containers:
+            self.cursor.execute("UPDATE container_info SET status = 'died' WHERE id = %s", (container_id,))
         
-        for container in containers:
+        # now process the case when container has been already exists in table but with status 'died'
+        # in this case we have to set it's status to active again
+        existed_died_containers = host_containers_ids & saved_containers_id # intersection
+        for container_id in existed_died_containers:
+            self.cursor.execute("UPDATE container_info SET status = 'active' WHERE id = %s", (container_id))
+
+        for container in host_containers:
             stats = container.stats(stream=False)
 
             container_name = stats['name']
@@ -73,7 +92,7 @@ class DBConnection:
                 container_exists = self.cursor.fetchone()[0]
                 if not container_exists:
                     self.cursor.execute(
-                        "INSERT INTO container_info (id, name, memory_limit) VALUES (%s, %s, %s)",
+                        "INSERT INTO container_info (id, name, memory_limit, status) VALUES (%s, %s, %s, 'active')",
                         (container_id, container_name, memory_stats['memory_limit'])
                     )
 
