@@ -2,7 +2,7 @@ import os
 import json
 import logging
 
-import logger_config
+import src.backend.logger_config
 
 logger = logging.getLogger(__name__)
 

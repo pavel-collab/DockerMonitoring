@@ -1,16 +1,14 @@
 from docker import DockerClient
 import psycopg2
 from psycopg2 import OperationalError, errors
-import os
-import json
 import time
 import logging
 
-import logger_config
+import src.backend.logger_config
 
 logger = logging.getLogger(__name__)
 
-from utils import ns2hours, byte2Kb
+from src.backend.utils import ns2hours, byte2Kb
 
 MAX_CONNECTION_ATTEMPTS = 8
 DELAY = 2
