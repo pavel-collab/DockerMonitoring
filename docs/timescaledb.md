@@ -85,7 +85,8 @@ ALTER TABLE container_stats
 -- Создаем таблицу
 CREATE TABLE container_info (id TEXT NOT NULL, 
                              name TEXT, 
-                             memory_limit DOUBLE PRECISION);
+                             memory_limit DOUBLE PRECISION,
+                             status TEXT NOT NULL DEFAULT 'died');
 
 -- Создаем первичный ключ в эту таблицу (она будет основной, все остальные таблицы будут ссылаться на нее)
 ALTER TABLE container_info ADD CONSTRAINT container_id PRIMARY KEY (id);
