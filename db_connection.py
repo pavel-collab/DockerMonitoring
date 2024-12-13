@@ -110,10 +110,10 @@ class DBConnection:
         system_cpu_usage = stats['cpu_stats']['system_cpu_usage']
 
         cpu_stats = {
-            "cpu_usage": ns2hours(cpu_usage),
-            "kernel_cpu_usage": ns2hours(kernel_cpu_usage),
-            "user_cpu_usage": ns2hours(user_cpu_usage),
-            "system_cpu_usage": ns2hours(system_cpu_usage)
+            "cpu_usage": cpu_usage,
+            "kernel_cpu_usage": kernel_cpu_usage,
+            "user_cpu_usage": user_cpu_usage,
+            "system_cpu_usage": system_cpu_usage
         }
         return cpu_stats
 
@@ -122,8 +122,8 @@ class DBConnection:
         memory_limit = stats['memory_stats']['limit']
 
         memory_stats = {
-            'memory_usage': byte2Kb(memory_usage),
-            'memory_limit': byte2Kb(memory_limit)
+            'memory_usage': memory_usage,
+            'memory_limit': memory_limit 
         }
         return memory_stats
     
