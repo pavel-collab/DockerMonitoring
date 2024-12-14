@@ -3,6 +3,7 @@ charset-normalizer==3.4.0
 docker==7.1.0
 idna==3.10
 psycopg2-binary==2.9.10
+pytz==2024.2
 requests==2.32.3
 urllib3==2.2.3
 

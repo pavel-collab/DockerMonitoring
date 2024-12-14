@@ -7,10 +7,8 @@ import logger_config
 
 logger = logging.getLogger(__name__)
 
-from db_connection import DBConnection
+from db_connection import DBConnection, SYSTEM_SCANING_INTERVAL
 from arguments_parsing import parse_connection_arguments
-
-SLEEP_INTERVAL = 10 # sec
 
 def main():
     try:
@@ -27,7 +25,7 @@ def main():
     try:
         while True:
             db_connection.collect_stats()
-            time.sleep(SLEEP_INTERVAL)
+            time.sleep(SYSTEM_SCANING_INTERVAL)
     except KeyboardInterrupt:
         db_connection.close_db_connection()
         logger.info("End of collect docker stats")
