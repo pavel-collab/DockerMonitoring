@@ -71,7 +71,23 @@
             options: { 
                 maintainAspectRatio: false,
                 scales: {
-                    x: { type: 'time' }
+                    x: { 
+                        type: 'timeseries',
+                        ticks: { maxTicksLimit: 10 },
+                        title: { 
+                            text: 'time',
+                            display: true,
+                            font: { weight: 'bold' }
+                        }
+                    },
+                    y: {
+                        title: { 
+                                text: 'CPU usage, ns',
+                                display: true,
+                                font: { weight: 'bold' }
+                        }
+                    }
+                    
                 },
                 plugins: {
                     title: {
@@ -109,8 +125,21 @@
             options: { 
                 maintainAspectRatio: false,
                 scales: {
-                    x: {
-                        type: 'time',
+                    x: { 
+                        type: 'timeseries',
+                        ticks: { maxTicksLimit: 10 },
+                        title: { 
+                            text: 'time',
+                            display: true,
+                            font: { weight: 'bold' }
+                        }
+                    },
+                    y: {
+                        title: { 
+                                text: 'Memory usage, bytes',
+                                display: true,
+                                font: { weight: 'bold' }
+                        }
                     }
                 },
                 plugins: {
