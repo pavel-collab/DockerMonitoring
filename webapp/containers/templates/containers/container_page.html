@@ -51,7 +51,10 @@
         options: { 
             maintainAspectRatio: false,
             scales: {
-                x: { type: 'time' }
+                x: { 
+                    type: 'timeseries',
+                    ticks: { maxTicksLimit: 10 } 
+                }
             },
             plugins: {
                 title: {
@@ -84,8 +87,9 @@
         options: { 
             maintainAspectRatio: false,
             scales: {
-                x: {
-                    type: 'time',
+                x: { 
+                    type: 'timeseries',
+                    ticks: { maxTicksLimit: 10 } 
                 }
             },
             plugins: {
