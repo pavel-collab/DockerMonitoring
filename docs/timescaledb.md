@@ -121,8 +121,8 @@ ALTER TABLE container_detailed_statistics
 CREATE TABLE container_networks (id TEXT,
                                  time TIMESTAMPTZ NOT NULL DEFAULT NOW(),
                                  network_name TEXT,
-                                 resieved_bytes DOUBLE PRECISION,
-                                 transmited_bytes DOUBLE PRECISION);
+                                 recieved_bytes DOUBLE PRECISION,
+                                 transmitted_bytes DOUBLE PRECISION);
 
 -- Превращаем ее в гипертаблицу
 SELECT create_hypertable('container_networks', 'time');

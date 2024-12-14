@@ -107,8 +107,8 @@ class DBConnection:
 
                 for network, net_stat in network_stats.items():
                     self.cursor.execute(
-                        "INSERT INTO container_networks (id, network_name, resieved_bytes, transmited_bytes) VALUES (%s, %s, %s, %s)",
-                        (container_id, network, net_stat['resieved_bytes'], net_stat['transmited_bytes'])
+                        "INSERT INTO container_networks (id, network_name, received_bytes, transmitted_bytes) VALUES (%s, %s, %s, %s)",
+                        (container_id, network, net_stat['recieved_bytes'], net_stat['transmitted_bytes'])
                     )
 
                 self.cursor.execute(
@@ -117,7 +117,7 @@ class DBConnection:
                     )
                 self.conn.commit()
             except Exception:
-                logger.critical(f"Exception was caught while tring to collect statistics", exc_info=True)
+                logger.critical(f"Exception was caught while trying to collect statistics", exc_info=True)
 
     def close_db_connection(self):
         self.cursor.close()
@@ -155,8 +155,8 @@ class DBConnection:
         network_stats = {}
         for network in stats['networks'].keys():
             network_stats[network] = {
-                "resieved_bytes": stats['networks'][network]['rx_bytes'],
-                "transmited_bytes": stats['networks'][network]['tx_packets']
+                "received_bytes": stats['networks'][network]['rx_bytes'],
+                "transmitted_bytes": stats['networks'][network]['tx_packets']
             }
         return network_stats
     
