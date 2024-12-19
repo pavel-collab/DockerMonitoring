@@ -1,0 +1,10 @@
+FROM python:3.11
+
+RUN apt update
+RUN pip install -r requirements.txt
+
+RUN mkdir /webapp
+
+COPY ./webapp /app
+
+WORKDIR /app
