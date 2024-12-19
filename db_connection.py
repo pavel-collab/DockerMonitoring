@@ -10,18 +10,16 @@ import logger_config
 
 logger = logging.getLogger(__name__)
 
-from utils import ns2hours, byte2Kb
-
 MAX_CONNECTION_ATTEMPTS = 8
 DELAY = 2
 
+#TODO: необходимо реализовать интерфейс with db_connection:
 class DBConnection:
     def __init__(self, connection_parameters):
         if not set(['dbname', 'host_ip', 'user', 'port']).issubset(set(connection_parameters.keys())):
             raise RuntimeError(f"There are not all parameters in the connection config: {connection_parameters.keys()}")
 
         self.connect_db(connection_parameters)
-        self.start_docker_client()
 
     def connect_db(self, connection_parameters):
         attempts = 0
@@ -47,11 +45,15 @@ class DBConnection:
                     self.conn.close()
         raise RuntimeError("max attempts of connection overlay")
 
-    def start_docker_client(self):
-        try:
-            self.docker_client = DockerClient(base_url='unix://var/run/docker.sock')
-        except Exception:
-            logger.error(f'Exception has been caught during starting docker client.', exc_info=True)
+    def close_db_connection(self):
+        self.cursor.close()
+        self.conn.close()
+        logger.info("Closed Connection!")
+
+class StatsCollector:
+    def __init__(self, db_connection, docker_client) -> None:
+        self.db_connection = db_connection
+        self.docker_client = docker_client
 
     def collect_stats(self):
         containers = self.docker_client.containers.list()
@@ -94,11 +96,6 @@ class DBConnection:
                 self.conn.commit()
             except Exception:
                 logger.critical(f"Exception was caught while tring to collect statistics", exc_info=True)
-
-    def close_db_connection(self):
-        self.cursor.close()
-        self.conn.close()
-        logger.info("Closed Connection!")
 
     def get_container_cpu_statistics(self, stats):
         '''
