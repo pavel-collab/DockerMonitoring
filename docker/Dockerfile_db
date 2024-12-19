@@ -1,0 +1,21 @@
+# Используем официальный образ PostgreSQL
+FROM postgres:15
+
+# Устанавливаем необходимые зависимости для установки TimescaleDB
+RUN apt-get update && apt-get install -y \
+    gnupg2 \
+    wget \
+    lsb-release && \
+    echo "deb https://packages.timescale.com/deb $(lsb_release -cs) main" \
+    | tee /etc/apt/sources.list.d/timescale_timescaledb.list && \
+    wget -qO - https://packages.timescale.com/api/gpg-key/timescale.asc | apt-key add - && \
+    apt-get update && \
+    apt-get install -y timescaledb-postgresql-15 && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Настраиваем TimescaleDB
+RUN timescaledb-tune --quiet --yes
+
+# Копируем ваши файлы конфигурации (если есть)
+COPY ./conf/custom-postgres.conf /var/lib/postgresql/data/postgresql.conf
