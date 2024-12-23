@@ -58,6 +58,7 @@ class DBConnection:
         if len(containers) == 0:
             return
         
+        # print(f"DEBUG containers: {containers}")
         for container in containers:
             stats = container.stats(stream=False)
 

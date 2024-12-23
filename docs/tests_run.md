@@ -1,0 +1,3 @@
+```
+pytest tests/test.py
+```

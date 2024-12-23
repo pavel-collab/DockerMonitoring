@@ -3,7 +3,7 @@ import psycopg2
 
 def clear_db_tables(cursor, table_list: list):
     for table_name in table_list:
-        cursor.execute(f"DELETE FROM TABLE {table_name};")
+        cursor.execute(f"DELETE FROM {table_name};")
 
 #TODO: write clean views
 def clear_db_views(cursor):

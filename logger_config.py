@@ -4,7 +4,11 @@ import os
 DEFAULT_LOG_DIRECTORY = "logs"
 CORE_LOG_FILE = "core.log"
 
+CURRENT_LOGFILE_PATH = None
+
 def setup_logger():
+    global CURRENT_LOGFILE_PATH
+
     if not os.path.exists(DEFAULT_LOG_DIRECTORY):
         try:
             os.makedirs(DEFAULT_LOG_DIRECTORY)
@@ -13,6 +17,7 @@ def setup_logger():
             exit(1)
 
     log_file_path = os.path.join(DEFAULT_LOG_DIRECTORY, CORE_LOG_FILE)
+    CURRENT_LOGFILE_PATH = log_file_path
 
     # Here we're able to set particular lever for each handler
     stream_handler = logging.StreamHandler()
@@ -30,5 +35,13 @@ def setup_logger():
             file_handler    # writing logs to stdout
         ]
     )
+
+def get_logfile_path():
+    global CURRENT_LOGFILE_PATH
+    
+    if CURRENT_LOGFILE_PATH:
+        return CURRENT_LOGFILE_PATH
+    else:
+        raise RuntimeError("There is no logfile path")
 
 setup_logger()
