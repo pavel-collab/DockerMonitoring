@@ -5,6 +5,8 @@ import os
 import json
 import time
 import logging
+from datetime import datetime, timedelta
+import pytz
 
 import logger_config
 
@@ -14,6 +16,9 @@ from utils import ns2hours, byte2Kb
 
 MAX_CONNECTION_ATTEMPTS = 8
 DELAY = 2
+
+SYSTEM_SCANING_INTERVAL = 5 # sec
+CONTAINER_UPDATE_INTERVAL = 10 # sec
 
 class DBConnection:
     def __init__(self, connection_parameters):
@@ -72,10 +77,24 @@ class DBConnection:
                 self.cursor.execute("SELECT EXISTS(SELECT 1 FROM container_info WHERE id = %s);", (container_id,))
                 container_exists = self.cursor.fetchone()[0]
                 if not container_exists:
+                    # if we found new container, we still have no info about it => add info to the main table
                     self.cursor.execute(
-                        "INSERT INTO container_info (id, name, memory_limit) VALUES (%s, %s, %s)",
+                        "INSERT INTO container_info (id, name, memory_limit, last_upd_time) VALUES (%s, %s, %s, NOW())",
                         (container_id, container_name, memory_stats['memory_limit'])
                     )
+                    container_last_upd_time = None
+                else:
+                    self.cursor.execute(
+                        "SELECT last(time, time) FROM container_stats WHERE container_id = %s",
+                        (container_id,)
+                    )
+                    container_last_upd_time = self.cursor.fetchone()[0]
+
+                if not self.is_update_time(container_last_upd_time):
+                    logger.debug(f"Container {container_name} is not a time to update")
+                    return
+                
+                logger.debug(f"Time to update container {container_name}")
 
                 self.cursor.execute(
                     "INSERT INTO container_stats (container_id, cpu_usage, memory_usage) VALUES (%s, %s, %s)",
@@ -88,12 +107,17 @@ class DBConnection:
 
                 for network, net_stat in network_stats.items():
                     self.cursor.execute(
-                        "INSERT INTO container_networks (id, network_name, resieved_bytes, transmited_bytes) VALUES (%s, %s, %s, %s)",
-                        (container_id, network, net_stat['resieved_bytes'], net_stat['transmited_bytes'])
+                        "INSERT INTO container_networks (id, network_name, received_bytes, transmitted_bytes) VALUES (%s, %s, %s, %s)",
+                        (container_id, network, net_stat['recieved_bytes'], net_stat['transmitted_bytes'])
+                    )
+
+                self.cursor.execute(
+                        "UPDATE container_info SET last_upd_time = NOW() WHERE id = %s",
+                        (container_id,)
                     )
                 self.conn.commit()
             except Exception:
-                logger.critical(f"Exception was caught while tring to collect statistics", exc_info=True)
+                logger.critical(f"Exception was caught while trying to collect statistics", exc_info=True)
 
     def close_db_connection(self):
         self.cursor.close()
@@ -131,7 +155,19 @@ class DBConnection:
         network_stats = {}
         for network in stats['networks'].keys():
             network_stats[network] = {
-                "resieved_bytes": stats['networks'][network]['rx_bytes'],
-                "transmited_bytes": stats['networks'][network]['tx_packets']
+                "received_bytes": stats['networks'][network]['rx_bytes'],
+                "transmitted_bytes": stats['networks'][network]['tx_packets']
             }
         return network_stats
+    
+    # container_last_upd_time could be None
+    def is_update_time(self, container_last_upd_time):
+        # That means it's a new container, we have no statistics about it
+        if container_last_upd_time == None:
+            return True
+
+        current_time = datetime.now(pytz.utc)
+        logger.debug(f"current_time is {current_time}")
+        time_difference = current_time - container_last_upd_time
+
+        return time_difference >= timedelta(seconds=CONTAINER_UPDATE_INTERVAL)

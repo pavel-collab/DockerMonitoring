@@ -85,7 +85,8 @@ ALTER TABLE container_stats
 -- Создаем таблицу
 CREATE TABLE container_info (id TEXT NOT NULL, 
                              name TEXT, 
-                             memory_limit DOUBLE PRECISION);
+                             memory_limit DOUBLE PRECISION
+                             last_upd_time TIMESTAMPTZ);
 
 -- Создаем первичный ключ в эту таблицу (она будет основной, все остальные таблицы будут ссылаться на нее)
 ALTER TABLE container_info ADD CONSTRAINT container_id PRIMARY KEY (id);
@@ -120,8 +121,8 @@ ALTER TABLE container_detailed_statistics
 CREATE TABLE container_networks (id TEXT,
                                  time TIMESTAMPTZ NOT NULL DEFAULT NOW(),
                                  network_name TEXT,
-                                 resieved_bytes DOUBLE PRECISION,
-                                 transmited_bytes DOUBLE PRECISION);
+                                 recieved_bytes DOUBLE PRECISION,
+                                 transmitted_bytes DOUBLE PRECISION);
 
 -- Превращаем ее в гипертаблицу
 SELECT create_hypertable('container_networks', 'time');
